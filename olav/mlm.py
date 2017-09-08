@@ -15,6 +15,15 @@ FIELD_WEIGHTS = [0.2, 0.8]
 LAMBDA = 0.4
 
 
+session_file = "data/not.finished"
+
+
+def dump_args(args):
+    with open(session_file, "w") as f:
+        for arg in args:
+            f.write('{}\n'.format(arg))
+
+
 def load_queries(query_file):
     queries = {}
     with open(query_file, "r") as fin:
@@ -117,42 +126,38 @@ def score_bm25(es, qterms, doc_id, k, b):
 
 
 def run(k, b, lam):
-    es = Elasticsearch()
+    try:
+        es = Elasticsearch()
 
-    queries = load_queries(QUERY_FILE)
-    with open(OUTPUT_FILE, "w") as fout, open(OUTPUT_BM25, 'w') as gout:
-        # write header
-        fout.write("QueryId,DocumentId\n")
-        gout.write("QueryId,DocumentId\n")
-        for qid, query in queries.items():
-            # get top 200 docs using BM25
-            print("Get baseline ranking for [%s] '%s'" % (qid, query))
-            res = es.search(index=INDEX_NAME, q=query, df="content", _source=False, size=200).get('hits', {})
-            qterms = analyze_query(es, query)
-            if lam <= 1:
-                # re-score docs using MLM
-                print("Re-scoring documents using MLM")
-                # get analyzed query
-                # get collection LM
-                # (this needs to be instantiated only once per query and can be used for scoring all documents)
-                clm = CollectionLM(es, qterms)
-                scores = {}
+        queries = load_queries(QUERY_FILE)
+        with open(OUTPUT_FILE, "w") as fout, open(OUTPUT_BM25, 'w') as gout:
+            fout.write("QueryId,DocumentId\n")
+            gout.write("QueryId,DocumentId\n")
+            for qid, query in queries.items():
+                print("Get baseline ranking for [%s] '%s'" % (qid, query))
+                res = es.search(index=INDEX_NAME, q=query, df="content", _source=False, size=200).get('hits', {})
+                qterms = analyze_query(es, query)
+                if lam <= 1:
+                    print("Re-scoring documents using MLM")
+                    clm = CollectionLM(es, qterms)
+                    scores = {}
+                    for doc in res.get("hits", {}):
+                        doc_id = doc.get("_id")
+                        scores[doc_id] = score_mlm(es, clm, qterms, doc_id, lam)
+                    for doc_id, score in sorted(scores.items(), key=lambda x: x[1], reverse=True)[:100]:
+                        fout.write(qid + "," + doc_id + "\n")
+
+                print("Re-scoring documents using optimized BM25")
+                scores_bm = {}
                 for doc in res.get("hits", {}):
                     doc_id = doc.get("_id")
-                    scores[doc_id] = score_mlm(es, clm, qterms, doc_id, lam)
+                    scores_bm[doc_id] = score_bm25(es, qterms, doc_id, k, b)
 
-            print("Re-scoring documents using optimized BM25")
-            scores_bm = {}
-            for doc in res.get("hits", {}):
-                doc_id = doc.get("_id")
-                scores_bm[doc_id] = score_bm25(es, qterms, doc_id, k, b)
-
-            # write top 100 results to file
-            if scores:
-                for doc_id, score in sorted(scores.items(), key=lambda x: x[1], reverse=True)[:100]:
-                    fout.write(qid + "," + doc_id + "\n")
-            for doc_id, score in sorted(scores_bm.items(), key=lambda x: x[1], reverse=True)[:100]:
-                gout.write(qid + "," + doc_id + "\n")
+                for doc_id, score in sorted(scores_bm.items(), key=lambda x: x[1], reverse=True)[:100]:
+                    gout.write(qid + "," + doc_id + "\n")
+    except Exception as e:
+        dump_args([LAMBDA, b])
+        print('There was an error \n {}'.format(e))
 
 
 if __name__ == '__main__':
