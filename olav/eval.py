@@ -65,6 +65,7 @@ def full_eval(gt_file, output_file):
     avg_ap = sum_ap / len_rankings
     avg_rr = sum_rr / len_rankings
     print("%5s %6.3f %6.3f %6.3f" % ("ALL", avg_p10, avg_ap, avg_rr))
+    return {'p10': avg_p10, 'ap': avg_ap, 'rr': avg_rr}
 
 if __name__ == '__main__':
     full_eval(QRELS_FILE, RANKING_FILE)

@@ -61,7 +61,7 @@ class CollectionLM(object):
         return self._probs.get(field, {}).get(term, 0)
 
 
-def score_mlm(es, clm, qterms, doc_id):
+def score_mlm(es, clm, qterms, doc_id, lam):
     score = 0  # log P(q|d)
 
     # Getting term frequency statistics for the given document field from Elasticsearch
@@ -76,38 +76,25 @@ def score_mlm(es, clm, qterms, doc_id):
         Pt_theta_d = 0  # P(t|\theta_d)
         tf, tf_sum, dl_sum = 0, 0, 0
         for i, field in enumerate(FIELDS):
-
-            # TODO compute the field language model $P(t|\theta_{d_i})$ with Jelinek-Mercer smoothing
-            ####################################
-
             if field in tv and t in tv[field]['terms']:
                 if t in tv[field]['terms']:
                     tf = tv[field]['terms'][t]['term_freq']
                     tf_sum += tf
                 dl = sum(stats['term_freq'] for term, stats in tv[field]['terms'].items())  # Document length
                 dl_sum += dl
-                Pt_theta_di = ((1 - LAMBDA) * (tf_sum / dl_sum)) + (LAMBDA * clm.prob(field, t))
+                Pt_theta_di = ((1 - lam) * (tf_sum / dl_sum)) + (lam * clm.prob(field, t))
             else:
                 Pt_theta_di = (LAMBDA * clm.prob(field, t))
 
-            ####################################
-
-            # NOTE keep in mind that the term vector will not contain `term` as a key if the document doesn't
-            # contain that term; you will still need to use the background term probabilities for that term.
-            # You can get the background term probability using `clm.prob(field, t)`
-
             Pt_theta_d += FIELD_WEIGHTS[i] * Pt_theta_di
 
-        # TODO uncomment this line once you computed Pt_theta_d (and it is >0)
         score += math.log(Pt_theta_d)
 
     return score
 
 
-def score_bm25(es, qterms, doc_id):
+def score_bm25(es, qterms, doc_id, k, b):
     bm_score = 0
-    k = 1.5
-    b = 0.8
 
     tv = es.termvectors(index=INDEX_NAME, doc_type=DOC_TYPE, id=doc_id, fields=FIELDS,
                         term_statistics=False).get("term_vectors", {})
@@ -129,7 +116,7 @@ def score_bm25(es, qterms, doc_id):
     return bm_score
 
 
-def run():
+def run(k, b, lam):
     es = Elasticsearch()
 
     queries = load_queries(QUERY_FILE)
@@ -153,13 +140,13 @@ def run():
             scores = {}
             for doc in res.get("hits", {}):
                 doc_id = doc.get("_id")
-                scores[doc_id] = score_mlm(es, clm, qterms, doc_id)
+                scores[doc_id] = score_mlm(es, clm, qterms, doc_id, lam)
 
             print("Re-scoring documents using optimized BM25")
             scores_bm = {}
             for doc in res.get("hits", {}):
                 doc_id = doc.get("_id")
-                scores_bm[doc_id] = score_bm25(es, qterms, doc_id)
+                scores_bm[doc_id] = score_bm25(es, qterms, doc_id, k, b)
 
             # write top 100 results to file
             for doc_id, score in sorted(scores.items(), key=lambda x: x[1], reverse=True)[:100]:
@@ -169,4 +156,4 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+    run(1.2, 0.75, 0.1)
