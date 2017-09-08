@@ -16,10 +16,10 @@ if __name__ == '__main__':
         mlm = eval.full_eval(QRELS_FILE, MLM_FILE)
         bm = eval.full_eval(QRELS_FILE, BM_FILE)
         with open('data/results.txt', 'a') as rfile:
-            rfile.write('  SCR  P@10   (M)AP  (M)RR')
-            rfile.write('BLN  {0:06.3f}  {1:06.3f}  {2:06.3f}'.format(baseline['p10'], baseline['ap'], baseline['rr']))
-            rfile.write('MLM  {0:06.3f}  {1:06.3f}  {2:06.3f}'.format(mlm['p10'], mlm['ap'], mlm['rr']))
-            rfile.write('BMO  {0:06.3f}  {1:06.3f}  {2:06.3f}'.format(bm['p10'], bm['ap'], bm['rr']))
+            rfile.write('  SCR  P@10   (M)AP  (M)RR\n')
+            rfile.write('BLN  {0:06.3f}  {1:06.3f}  {2:06.3f}\n'.format(baseline['p10'], baseline['ap'], baseline['rr']))
+            rfile.write('MLM  {0:06.3f}  {1:06.3f}  {2:06.3f}\n'.format(mlm['p10'], mlm['ap'], mlm['rr']))
+            rfile.write('BMO  {0:06.3f}  {1:06.3f}  {2:06.3f}\n'.format(bm['p10'], bm['ap'], bm['rr']))
         LAMBDA += 0.01
         k += 0.01
         b += 0.01
