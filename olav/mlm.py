@@ -120,7 +120,6 @@ def run(k, b, lam):
     es = Elasticsearch()
 
     queries = load_queries(QUERY_FILE)
-
     with open(OUTPUT_FILE, "w") as fout, open(OUTPUT_BM25, 'w') as gout:
         # write header
         fout.write("QueryId,DocumentId\n")
@@ -129,18 +128,18 @@ def run(k, b, lam):
             # get top 200 docs using BM25
             print("Get baseline ranking for [%s] '%s'" % (qid, query))
             res = es.search(index=INDEX_NAME, q=query, df="content", _source=False, size=200).get('hits', {})
-
-            # re-score docs using MLM
-            print("Re-scoring documents using MLM")
-            # get analyzed query
             qterms = analyze_query(es, query)
-            # get collection LM
-            # (this needs to be instantiated only once per query and can be used for scoring all documents)
-            clm = CollectionLM(es, qterms)
-            scores = {}
-            for doc in res.get("hits", {}):
-                doc_id = doc.get("_id")
-                scores[doc_id] = score_mlm(es, clm, qterms, doc_id, lam)
+            if lam <= 1:
+                # re-score docs using MLM
+                print("Re-scoring documents using MLM")
+                # get analyzed query
+                # get collection LM
+                # (this needs to be instantiated only once per query and can be used for scoring all documents)
+                clm = CollectionLM(es, qterms)
+                scores = {}
+                for doc in res.get("hits", {}):
+                    doc_id = doc.get("_id")
+                    scores[doc_id] = score_mlm(es, clm, qterms, doc_id, lam)
 
             print("Re-scoring documents using optimized BM25")
             scores_bm = {}
@@ -149,8 +148,9 @@ def run(k, b, lam):
                 scores_bm[doc_id] = score_bm25(es, qterms, doc_id, k, b)
 
             # write top 100 results to file
-            for doc_id, score in sorted(scores.items(), key=lambda x: x[1], reverse=True)[:100]:
-                fout.write(qid + "," + doc_id + "\n")
+            if scores:
+                for doc_id, score in sorted(scores.items(), key=lambda x: x[1], reverse=True)[:100]:
+                    fout.write(qid + "," + doc_id + "\n")
             for doc_id, score in sorted(scores_bm.items(), key=lambda x: x[1], reverse=True)[:100]:
                 gout.write(qid + "," + doc_id + "\n")
 
