@@ -29,7 +29,7 @@ def read_data():
         params = []
         for line in lines:
             temp_res = {}
-            if line.startswith('  '):
+            if line.startswith('SCR'):
                 elements = line.replace(',', '=').split('=')  # splits the line so it's easy to extract the parameters
                 params = [float(element) for element in elements if isfloat(element)]
             else:

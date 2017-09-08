@@ -47,7 +47,7 @@ if __name__ == '__main__':
                 mlm = eval.full_eval(QRELS_FILE, MLM_FILE)
                 bm = eval.full_eval(QRELS_FILE, BM_FILE)
                 with open('data/results.txt', 'a') as rfile:
-                    rfile.write('  SCR  P@10  (M)AP  (M)RR using parameters '
+                    rfile.write('SCR   P@10  (M)AP  (M)RR using parameters '
                                 'lambda={0}, k={1}, b={2}\n'.format(LAMBDA, k, b))
                     rfile.write('BLN  {0:05.3f}  {1:05.3f}  {2:05.3f}\n'.format(baseline['p10'], baseline['ap'],
                                                                                 baseline['rr']))
