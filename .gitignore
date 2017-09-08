@@ -1,2 +1,5 @@
 .idea
 __pycache__
+olav/data/bm25_optimized.txt
+olav/data/mlm_default.txt
+olav/data/results.txt
