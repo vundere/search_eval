@@ -73,7 +73,7 @@ def score_mlm(es, clm, qterms, doc_id):
         Pt_theta_d = 0  # P(t|\theta_d)
         for i, field in enumerate(FIELDS):
 
-            # TODO compute the field language model $P(t|\theta_{d_i})$ with Jelinek-Mercer smoothing
+            # TODO compute the field language model $P(t|\theta_{d_i})$ with Dirichlet smoothing
             ####################################
             tf, tf_sum, dl_sum = 0, 0, 0
             if field in tv and t in tv[field]['terms']:
