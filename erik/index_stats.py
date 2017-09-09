@@ -26,12 +26,12 @@ def main():
     scroll_size = page['hits']['total']
     # Start scrolling
     while scroll_size > 0:
-        print("Scrolling...")
-        page = es.scroll(scroll_id=sid, scroll='2m')
         res = page['hits']['hits']
         for hit in res:
             title_lengths.append(len(hit['_source']['title']))
             content_lengths.append(len(hit['_source']['content']))
+        print("Scrolling...")
+        page = es.scroll(scroll_id=sid, scroll='2m')
         # Update the scroll ID
         sid = page['_scroll_id']
         # Get the number of results that we returned in the last scroll
