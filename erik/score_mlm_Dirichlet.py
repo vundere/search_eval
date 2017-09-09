@@ -10,7 +10,7 @@ OUTPUT_FILE = "C:/Users/EJS/OneDrive/B-DATA/DAT630_webSearch_dataMining/GitHub/s
 
 FIELDS = ["title", "content"]
 FIELD_WEIGHTS = [0.2, 0.8]
-MU = 0.1
+MU = 0.8
 
 
 def load_queries(query_file):
@@ -113,7 +113,7 @@ def main():
             res = es.search(index=INDEX_NAME, q=query, df="content", _source=False, size=200).get('hits', {})
 
             # re-score docs using MLM
-            print("Re-scoring documents using MLM")
+            print("Re-scoring documents using MLM and Dirichlet smoothing")
             # get analyzed query
             qterms = analyze_query(es, query)
             # get collection LM
