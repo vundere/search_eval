@@ -9,8 +9,8 @@ QUERY_FILE = "C:/Users/EJS/OneDrive/B-DATA/DAT630_webSearch_dataMining/GitHub/sl
 OUTPUT_FILE = "C:/Users/EJS/OneDrive/B-DATA/DAT630_webSearch_dataMining/GitHub/slippers1-files/assignment-1/data/mlm_tweaked.txt"  # output the ranking
 
 FIELDS = ["title", "content"]
-FIELD_WEIGHTS = [0.2, 0.8]
-MU = 0.8
+FIELD_WEIGHTS = [0.35, 0.65]
+MU = 0.1
 
 
 def load_queries(query_file):
@@ -75,17 +75,13 @@ def score_mlm(es, clm, qterms, doc_id):
 
             # TODO compute the field language model $P(t|\theta_{d_i})$ with Dirichlet smoothing
             ####################################
-            tf, tf_sum, dl_sum = 0, 0, 0
+            tf, tf_sum, dl = 0, 0, 0
             if field in tv and t in tv[field]['terms']:
                 if t in tv[field]['terms']:
                     tf = tv[field]['terms'][t]['term_freq']
                     tf_sum += tf
                 dl = sum(stats['term_freq'] for term, stats in tv[field]['terms'].items())  # Document length
-                dl_sum += dl
-                Pt_theta_di = (tf_sum + (MU * clm.prob(field, t))) / (dl + MU)
-            else:
-                Pt_theta_di = clm.prob(field, t)
-
+            Pt_theta_di = (tf_sum + (MU * clm.prob(field, t))) / (dl + MU)
             ####################################
 
             # NOTE keep in mind that the term vector will not contain `term` as a key if the document doesn't
