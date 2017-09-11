@@ -13,6 +13,7 @@ BM_FILE = eval.BM_FILE
 LAMBDA = 1
 b = 0.750
 MU = 0
+WEIGHTS = [0.0, 0.0]
 INCREMENT = 0.05  # WARNING: SETTING THIS TO 0.01 WILL GIVE YOU A RUNTIME OF SEVERAL DAYS
 
 session_file = "data/not.finished"
@@ -45,7 +46,7 @@ if __name__ == '__main__':
         for j in range(0, int(1/INCREMENT)):
             k = 1
             for i in range(0, int(1/INCREMENT)):
-                run(k=k, b=b, lam=LAMBDA, mu=MU)
+                run(k=k, b=b, lam=LAMBDA, mu=MU, weights=WEIGHTS)
                 baseline = eval.full_eval(QRELS_FILE, RANKING_FILE)
                 mlm = eval.full_eval(QRELS_FILE, MLM_FILE)
                 bm = eval.full_eval(QRELS_FILE, BM_FILE)

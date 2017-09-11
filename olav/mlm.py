@@ -71,7 +71,7 @@ class CollectionLM(object):
         return self._probs.get(field, {}).get(term, 0)
 
 
-def score_mlm(es, clm, qterms, doc_id, lam):
+def score_mlm(es, clm, qterms, doc_id, lam, weights):
     score = 0  # log P(q|d)
 
     # Getting term frequency statistics for the given document field from Elasticsearch
@@ -96,7 +96,7 @@ def score_mlm(es, clm, qterms, doc_id, lam):
             else:
                 Pt_theta_di = (LAMBDA * clm.prob(field, t))
 
-            Pt_theta_d += FIELD_WEIGHTS[i] * Pt_theta_di
+            Pt_theta_d += weights[i] * Pt_theta_di
 
         score += math.log(Pt_theta_d)
 
@@ -126,32 +126,32 @@ def score_bm25(es, qterms, doc_id, k, b):
     return bm_score
 
 
-def score_mlm_dirichlet(es, clm, qterms, doc_id, mu):
+def score_mlm_dirichlet(es, clm, qterms, doc_id, mu, weights):
     dir_score = 0
     tv = es.termvectors(index=INDEX_NAME, doc_type=DOC_TYPE, id=doc_id, fields=FIELDS,
                         term_statistics=False).get("term_vectors", {})
 
     Pt_theta_d = 0  # P(t|\theta_d)
     for t in qterms:
-        tf, tf_sum = 0, 0
         for i, field in enumerate(FIELDS):
             if field in tv and t in tv[field]['terms']:
+                tf, tf_sum = 0, 0
                 if t in tv[field]['terms']:
                     tf = tv[field]['terms'][t]['term_freq']
                     tf_sum += tf
                 dl = sum(stats['term_freq'] for term, stats in tv[field]['terms'].items())
-                Pt_theta_di = (tf + mu * clm.prob(field, t)) / (dl + mu)
+                Pt_theta_di = (tf_sum + mu * clm.prob(field, t)) / (dl + mu)
             else:
                 Pt_theta_di = clm.prob(field, t)
 
-            Pt_theta_d += FIELD_WEIGHTS[i] * Pt_theta_di
+            Pt_theta_d += weights[i] * Pt_theta_di
 
         dir_score += math.log(Pt_theta_d)
 
     return dir_score
 
 
-def run(k, b, lam, mu):
+def run(k, b, lam, mu, weights):
     try:
         es = Elasticsearch()
 
@@ -169,7 +169,7 @@ def run(k, b, lam, mu):
                     scores = {}
                     for doc in res.get("hits", {}):
                         doc_id = doc.get("_id")
-                        scores[doc_id] = score_mlm(es, clm, qterms, doc_id, lam)
+                        scores[doc_id] = score_mlm(es, clm, qterms, doc_id, lam, weights)
                     for doc_id, score in sorted(scores.items(), key=lambda x: x[1], reverse=True)[:100]:
                         fout.write(qid + "," + doc_id + "\n")
 
@@ -187,4 +187,4 @@ def run(k, b, lam, mu):
 
 
 if __name__ == '__main__':
-    run(1.2, 0.75, 0.1, 0.7)
+    run(1.2, 0.75, 0.1, 0.7, FIELD_WEIGHTS)
