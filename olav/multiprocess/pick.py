@@ -71,7 +71,7 @@ def read_data():
 
 if __name__ == '__main__':
     read_data()
-    print('Best:\n\tOverall: {0}\n\tWeighted: {4}\n\tP@10: {1}\n\tMAP: {2}\n\tMRR: {3}'.format(BEST_RESULT, BEST_P10,
+    print('Best:\nOverall: {0}\nWeighted: {4}\nP@10: {1}\nMAP: {2}\nMRR: {3}'.format(BEST_RESULT, BEST_P10,
                                                                                      BEST_MAP, BEST_MRR, BEST_TWO))
     with open(WINNER_FILE, 'w') as wfile:
         print('Writing results to {}'.format(WINNER_FILE))

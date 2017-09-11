@@ -28,6 +28,7 @@ def eval_query(ranking, gt):
 def full_eval(gt_file, output_file):
     # load data from ground truth file
     gt = {}  # holds a list of relevant documents for each queryID
+    from __main__ import outqueue
     with open(gt_file, "r") as fin:
         header = fin.readline().strip()
         if header != "queryID,docIDs":
@@ -66,6 +67,7 @@ def full_eval(gt_file, output_file):
     avg_rr = sum_rr / len_rankings
     print("%5s %6.3f %6.3f %6.3f" % ("ALL", avg_p10, avg_ap, avg_rr))
     result = {'p10': avg_p10, 'ap': avg_ap, 'rr': avg_rr}
+    outqueue.put(result)
     return result
 
 if __name__ == '__main__':
