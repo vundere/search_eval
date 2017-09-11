@@ -173,14 +173,15 @@ def run(k, b, lam, mu, weights):
                     for doc_id, score in sorted(scores.items(), key=lambda x: x[1], reverse=True)[:100]:
                         fout.write(qid + "," + doc_id + "\n")
 
-                print("Re-scoring documents using optimized BM25")
-                scores_bm = {}
-                for doc in res.get("hits", {}):
-                    doc_id = doc.get("_id")
-                    scores_bm[doc_id] = score_bm25(es, qterms, doc_id, k, b)
+                if k <= 1 or b <= 1:
+                    print("Re-scoring documents using optimized BM25")
+                    scores_bm = {}
+                    for doc in res.get("hits", {}):
+                        doc_id = doc.get("_id")
+                        scores_bm[doc_id] = score_bm25(es, qterms, doc_id, k, b)
 
-                for doc_id, score in sorted(scores_bm.items(), key=lambda x: x[1], reverse=True)[:100]:
-                    gout.write(qid + "," + doc_id + "\n")
+                    for doc_id, score in sorted(scores_bm.items(), key=lambda x: x[1], reverse=True)[:100]:
+                        gout.write(qid + "," + doc_id + "\n")
     except Exception as e:
         dump_args([LAMBDA, b])
         print('There was an error \n {}'.format(e))
