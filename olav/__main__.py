@@ -1,6 +1,7 @@
 import eval
 import os
 import ast
+from elasticsearch import Elasticsearch
 from mlm import run
 from timer import Timer
 
@@ -17,6 +18,26 @@ WEIGHTS = [0.1, 0.1]
 INCREMENT = 0.1  # WARNING: SETTING THIS TO 0.01 WILL GIVE YOU A RUNTIME OF SEVERAL DAYS
 
 session_file = "data/not.finished"
+
+es = Elasticsearch()
+
+
+SIM = {
+    "similarity": {
+        "default": {
+            "type": "BM25",
+            "b": 0.75,
+            "k1": 1.2
+        }
+    }
+}
+
+
+def change_model(sim):
+    from mlm import INDEX_NAME
+    es.indices.close(index=INDEX_NAME)
+    es.indices.put_settings(index=INDEX_NAME, body=sim)
+    es.indices.open(index=INDEX_NAME)
 
 
 def dump_args(args):

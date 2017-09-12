@@ -19,6 +19,12 @@ MU = 0.5
 session_file = "data/not.finished"
 
 
+def change_model(sim, es):
+    es.indices.close(index=INDEX_NAME)
+    es.indices.put_settings(index=INDEX_NAME, body=sim)
+    es.indices.open(index=INDEX_NAME)
+
+
 def dump_args(args):
     with open(session_file, "w") as f:
         for arg in args:
@@ -108,6 +114,7 @@ def score_bm25(es, qterms, doc_id, k, b):
 
     tv = es.termvectors(index=INDEX_NAME, doc_type=DOC_TYPE, id=doc_id, fields=FIELDS,
                         term_statistics=False).get("term_vectors", {})
+
     total_docs = 0
     for t in qterms:
         tf, tf_sum, dl_sum, term_docs = 0, 0, 0, 0,
@@ -187,5 +194,31 @@ def run(k, b, lam, mu, weights):
         print('There was an error \n {}'.format(e))
 
 
+def run_query(es):
+    queries = load_queries(QUERY_FILE)
+    for qid, query in queries.items():
+        res = es.search(index=INDEX_NAME, q=query, df="content", _source=False, size=200).get('hits', {})
+        qterms = analyze_query(es, query)
+        print (res)
+        print(qterms)
+
+
 if __name__ == '__main__':
-    run(1.2, 0.75, 0.1, 0.7, FIELD_WEIGHTS)
+    try:
+        SIM = {
+            "similarity": {
+                "default": {
+                    "type": "BM25",
+                    "b": 0.75,
+                    "k1": 1.2
+                }
+            }
+        }
+        es = Elasticsearch()
+        run_query(es)
+        SIM["similarity"]["default"]["b"] = 0.2
+        change_model(SIM, es)
+        run_query(es)
+
+    except Exception as e:
+        print('There was an error \n {}'.format(e))
