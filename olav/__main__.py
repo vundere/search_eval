@@ -52,9 +52,9 @@ def exists(fname):
 
 # Logging functions nabbed from my discord bot
 def setup_logging():
-    log = logging.getLogger()
+    log = logging.getLogger("bm25_log")
     log.setLevel(logging.DEBUG)
-    handler = logging.FileHandler(filename='bm25.log', encoding='utf-8', mode='w')
+    handler = logging.FileHandler(filename='bm25.log', encoding='utf-8', mode='a')
     fmt = logging.Formatter('[%(asctime)s] :%(levelname)s: %(message)s', datefmt='%H:%M:%S')
     handler.setFormatter(fmt)
     log.addHandler(handler)
