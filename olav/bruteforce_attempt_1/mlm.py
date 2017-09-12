@@ -199,7 +199,7 @@ def run_query(es):
     for qid, query in queries.items():
         res = es.search(index=INDEX_NAME, q=query, df="content", _source=False, size=200).get('hits', {})
         qterms = analyze_query(es, query)
-        print (res)
+        print(res)
         print(qterms)
 
 

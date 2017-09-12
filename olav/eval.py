@@ -52,22 +52,24 @@ def full_eval(gt_file, output_file):
     print("  QID  P@10   (M)AP  (M)RR")
     # TODO compute averages over the entire query set
     sum_p10, sum_ap, sum_rr, len_rankings = 0, 0, 0, 0
-    for qid in sorted(gt.keys()):
-        res = eval_query(output.get(qid, []), gt.get(qid, []))
-        sum_p10 += res["P10"]
-        sum_ap += res["AP"]
-        sum_rr += res["RR"]
-        len_rankings += 1
-        # print("%5s %6.3f %6.3f %6.3f" % (qid, res["P10"], res["AP"], res["RR"]))
+    with open('data/bmo/why.txt', 'w') as why:
+        for qid in sorted(gt.keys()):
+            res = eval_query(output.get(qid, []), gt.get(qid, []))
+            sum_p10 += res["P10"]
+            sum_ap += res["AP"]
+            sum_rr += res["RR"]
+            len_rankings += 1
+            # print("%5s %6.3f %6.3f %6.3f" % (qid, res["P10"], res["AP"], res["RR"]))
+            why.write("\t%5s %6.3f %6.3f %6.3f\n" % (qid, res["P10"], res["AP"], res["RR"]))
 
-    # print averages
-    avg_p10 = sum_p10 / len_rankings
-    avg_ap = sum_ap / len_rankings
-    avg_rr = sum_rr / len_rankings
-    print("%5s %6.3f %6.3f %6.3f" % ("ALL", avg_p10, avg_ap, avg_rr))
-    result = {'p10': avg_p10, 'ap': avg_ap, 'rr': avg_rr}
-    return result
+        # print averages
+        avg_p10 = sum_p10 / len_rankings
+        avg_ap = sum_ap / len_rankings
+        avg_rr = sum_rr / len_rankings
+        print("%5s %6.3f %6.3f %6.3f" % ("ALL", avg_p10, avg_ap, avg_rr))
+        why.write("\t%5s %6.3f %6.3f %6.3f\n" % ("ALL", avg_p10, avg_ap, avg_rr))
+        result = {'p10': avg_p10, 'ap': avg_ap, 'rr': avg_rr}
+        return result
 
 if __name__ == '__main__':
-    full_eval(QRELS_FILE, RANKING_FILE)
-    full_eval(QRELS_FILE, MLM_FILE)
+    full_eval(QRELS_FILE, 'data/bmo/results_b_0.80_k_1.50_.txt')

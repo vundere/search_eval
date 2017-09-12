@@ -1,9 +1,12 @@
 import eval
 import os
-import ast
+import logging
+import pprint as pp
+
 from elasticsearch import Elasticsearch
-from mlm import run
+from bm25 import run_query, change_model
 from timer import Timer
+from pathlib import Path
 
 QRELS_FILE = eval.QRELS_FILE
 MLM_FILE = eval.MLM_FILE
@@ -11,18 +14,7 @@ RANKING_FILE = eval.RANKING_FILE
 BM_FILE = eval.BM_FILE
 
 
-LAMBDA = 1
-b = 0.750
-MU = 0
-WEIGHTS = [0.1, 0.1]
-INCREMENT = 0.1  # WARNING: SETTING THIS TO 0.01 WILL GIVE YOU A RUNTIME OF SEVERAL DAYS
-
-session_file = "data/not.finished"
-
-es = Elasticsearch()
-
-
-SIM = {
+DEFAULT_SIM = {
     "similarity": {
         "default": {
             "type": "BM25",
@@ -33,89 +25,92 @@ SIM = {
 }
 
 
-def change_model(sim):
-    from mlm import INDEX_NAME
-    es.indices.close(index=INDEX_NAME)
-    es.indices.put_settings(index=INDEX_NAME, body=sim)
-    es.indices.open(index=INDEX_NAME)
+SIM = {
+    "similarity": {
+        "default": {
+            "type": "BM25",
+            "b": 0.75,
+            "k1": 1.45
+        }
+    }
+}
 
 
-def dump_args(args):
-    with open(session_file, "w") as f:
-        for arg in args:
-            f.write('{}\n'.format(arg))
+def get_vars(sim):
+    k = SIM["similarity"]["default"]["k1"]
+    b = SIM["similarity"]["default"]["b"]
+    return [k, b]
 
 
-def check_continue():
-    if os.path.isfile(session_file):
-        with open(session_file, "r") as f:
-            arguments = ast.literal_eval(f.readline())
-            print(arguments)
-        return arguments
+def exists(fname):
+    checkfile = Path(fname)
+    if checkfile.is_file():
+        return True
     else:
-        return None
+        return False
 
 
-def run_std():
-    global LAMBDA, b, MU, WEIGHTS, INCREMENT
-    timer = Timer('main')
-    timer.start()
-    cont = check_continue()
-    if cont:
-        LAMBDA, b = cont
-    try:
-        for j in range(0, int(1 / INCREMENT)):
-            k = 1
-            for i in range(0, int(1 / INCREMENT)):
-                run(k=k, b=b, lam=LAMBDA, mu=MU, weights=WEIGHTS)
-                baseline = eval.full_eval(QRELS_FILE, RANKING_FILE)
-                mlm = eval.full_eval(QRELS_FILE, MLM_FILE)
-                bm = eval.full_eval(QRELS_FILE, BM_FILE)
-                with open('data/results.txt', 'a') as rfile:
-                    rfile.write('SCR   P@10  (M)AP  (M)RR using parameters '
-                                'lambda={0:05.3f}, k={1:05.3f}, b={2:05.3f}\n'.format(LAMBDA, k, b))
-                    rfile.write('BLN  {0:05.3f}  {1:05.3f}  {2:05.3f}\n'.format(baseline['p10'], baseline['ap'],
-                                                                                baseline['rr']))
-                    rfile.write('MLM  {0:05.3f}  {1:05.3f}  {2:05.3f}\n'.format(mlm['p10'], mlm['ap'], mlm['rr']))
-                    rfile.write('BMO  {0:05.3f}  {1:05.3f}  {2:05.3f}\n'.format(bm['p10'], bm['ap'], bm['rr']))
-                if LAMBDA <= 1:
-                    LAMBDA += INCREMENT
-                k += INCREMENT
-            b += INCREMENT
-    except Exception as e:
-        dump_args([LAMBDA, b])
-        print('There was an error \n {}'.format(e))
-    timer.stop()
-    print(timer.total_running_time_long)
+# Logging functions nabbed from my discord bot
+def setup_logging():
+    log = logging.getLogger()
+    log.setLevel(logging.DEBUG)
+    handler = logging.FileHandler(filename='bm25.log', encoding='utf-8', mode='w')
+    fmt = logging.Formatter('[%(asctime)s] :%(levelname)s: %(message)s', datefmt='%H:%M:%S')
+    handler.setFormatter(fmt)
+    log.addHandler(handler)
+    return log
 
 
-def run_mlm():
-    global LAMBDA, b, MU, WEIGHTS, INCREMENT
-    timer = Timer('main')
-    timer.start()
-    try:
-        for j in range(0, int(1 / INCREMENT)):
-            k = 1
-            for i in range(0, int(1 / INCREMENT)):
-                run(k=k, b=b, lam=LAMBDA, mu=MU, weights=WEIGHTS)
-                baseline = eval.full_eval(QRELS_FILE, RANKING_FILE)
-                mlm = eval.full_eval(QRELS_FILE, MLM_FILE)
-                with open('data/results.txt', 'a') as rfile:
-                    rfile.write('SCR   P@10  (M)AP  (M)RR using parameters '
-                                'lambda={0:05.3f}, weights={1:05.3f}\n'.format(LAMBDA, WEIGHTS))
-                    rfile.write('BLN  {0:05.3f}  {1:05.3f}  {2:05.3f}\n'.format(baseline['p10'], baseline['ap'],
-                                                                                baseline['rr']))
-                    rfile.write('MLM  {0:05.3f}  {1:05.3f}  {2:05.3f}\n'.format(mlm['p10'], mlm['ap'], mlm['rr']))
-                LAMBDA += INCREMENT
-                for w in WEIGHTS:
-                    w += INCREMENT
-    except Exception as e:
-        dump_args([LAMBDA, b])
-        print('There was an error \n {}'.format(e))
-    timer.stop()
-    print(timer.total_running_time_long)
+def end_logging(log):
+    handlers = log.handlers[:]
+    for hdlr in handlers:
+        hdlr.close()
+        log.removeHandler(hdlr)
 
-
-# TODO implement iterating over MLM field weights
 if __name__ == '__main__':
-    run_mlm()
+    runtimer = Timer()
+    runtimer.start()
+    es = Elasticsearch()
+    change_model(DEFAULT_SIM, es)  # Resets the search model
+    loop_no = 1
+    log = setup_logging()
+    for i in range(11):
+        SIM["similarity"]["default"]["k1"] = 1.45
+        for j in range(11):
+            loop_vars = get_vars(SIM)
+            print('Running loop no. {}...'.format(loop_no))
+            log.debug('Querying with vars k={0}, b={1}.\nElasticsearch settings:\n{2}'.format(loop_vars[0],  # line
+                                                                                              loop_vars[1],  # length
+                                                                                              pp.pformat(    # lol
+                                                                                                 es.indices.get_settings
+                                                                                                 (index='aquaint')
+                                                                                             )))
+            file = 'data/bmo/results_b_{0:04.2f}_k_{1:04.2f}_.txt'.format(loop_vars[1], loop_vars[0])
+            if exists(file):
+                print('Results for b={0:04.2f}, k={1:04.2f} already exist'.format(loop_vars[1], loop_vars[0]))
+            else:
+                run_query(file, es)
+            SIM["similarity"]["default"]["k1"] += 0.01
+            change_model(SIM, es)
+            loop_no += 1
+        SIM["similarity"]["default"]["b"] += 0.01
+        change_model(SIM, es)
+    runtimer.lap()
+    print(runtimer.total_running_time_long)
+    for i in os.listdir('data/BMO/'):
+        with open('data/bmo/evaluations.txt', 'a') as f:
+            cur_file = 'data/bmo/{}'.format(i)
+            print('Evaluating {}...'.format(cur_file))
+            if cur_file.startswith('data/bmo/results'):
+                feval = eval.full_eval(QRELS_FILE, cur_file)
+                fvars = i.split('_')
+                f.write('\tP@10  (M)AP  (M)RR using parameters b={0:04.2f}, k={1:04.2f}\n'.format(float(fvars[2]),
+                                                                                                  float(fvars[4])))
+                f.write('\t{0:05.3f}  {1:05.3f}  {2:05.3f}\n'.format(feval['p10'], feval['ap'], feval['rr']))
+            else:
+                print('Invalid file, skipping...')
+    change_model(DEFAULT_SIM, es)  # Resets the search model
+
+    runtimer.lap()
+    print(runtimer.total_running_time_long)
+
