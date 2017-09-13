@@ -6,11 +6,11 @@ INDEX_NAME = "aquaint"
 DOC_TYPE = "doc"
 
 QUERY_FILE = "C:/Users/EJS/OneDrive/B-DATA/DAT630_webSearch_dataMining/GitHub/slippers1-files/assignment-1/data/queries.txt"
-OUTPUT_FILE = "C:/Users/EJS/OneDrive/B-DATA/DAT630_webSearch_dataMining/GitHub/slippers1-files/assignment-1/data/mlm_tweaked_Dirichlet.txt"  # output the ranking
+OUTPUT_FILE = "C:/Users/EJS/OneDrive/B-DATA/DAT630_webSearch_dataMining/GitHub/slippers1-files/assignment-1/data/mlm_tweaked_JelinekMercer.txt"  # output the ranking
 
 FIELDS = ["title", "content"]
-FIELD_WEIGHTS = [0.3, 0.7]
-MU = 1500
+FIELD_WEIGHTS = [0.35, 0.65]
+LAMBDA = 0.05
 
 
 def load_queries(query_file):
@@ -73,15 +73,19 @@ def score_mlm(es, clm, qterms, doc_id):
         Pt_theta_d = 0  # P(t|\theta_d)
         for i, field in enumerate(FIELDS):
 
-            # TODO compute the field language model $P(t|\theta_{d_i})$ with Dirichlet smoothing
+            # TODO compute the field language model $P(t|\theta_{d_i})$ with Jelinek-Mercer smoothing
             ####################################
-            tf, tf_sum, dl = 0, 0, 0
+            tf, tf_sum, dl_sum = 0, 0, 0
             if field in tv and t in tv[field]['terms']:
                 if t in tv[field]['terms']:
                     tf = tv[field]['terms'][t]['term_freq']
                     tf_sum += tf
                 dl = sum(stats['term_freq'] for term, stats in tv[field]['terms'].items())  # Document length
-            Pt_theta_di = (tf_sum + (MU * clm.prob(field, t))) / (dl + MU)
+                dl_sum += dl
+                Pt_theta_di = ((1 - LAMBDA) * (tf_sum/dl_sum)) + (LAMBDA * clm.prob(field, t))
+            else:
+                Pt_theta_di = (LAMBDA * clm.prob(field, t))
+
             ####################################
 
             # NOTE keep in mind that the term vector will not contain `term` as a key if the document doesn't
@@ -109,7 +113,7 @@ def main():
             res = es.search(index=INDEX_NAME, q=query, df="content", _source=False, size=200).get('hits', {})
 
             # re-score docs using MLM
-            print("Re-scoring documents using MLM and Dirichlet smoothing")
+            print("Re-scoring documents using MLM and Jelinek-Mercer smoothing")
             # get analyzed query
             qterms = analyze_query(es, query)
             # get collection LM
