@@ -1,11 +1,8 @@
 import eval
 import os
-import logging
-import pprint as pp
 
 from elasticsearch import Elasticsearch
 from bm25 import run_query, change_model
-from timer import Timer
 from pathlib import Path
 
 QRELS_FILE = eval.QRELS_FILE
@@ -29,8 +26,8 @@ SIM = {
     "similarity": {
         "default": {
             "type": "BM25",
-            "b": 0.75,
-            "k1": 1.45
+            "b": 0.0,
+            "k1": 1.0
         }
     }
 }
@@ -50,53 +47,29 @@ def exists(fname):
         return False
 
 
-# Logging functions nabbed from my discord bot
-def setup_logging():
-    log = logging.getLogger("bm25_log")
-    log.setLevel(logging.DEBUG)
-    handler = logging.FileHandler(filename='bm25.log', encoding='utf-8', mode='a')
-    fmt = logging.Formatter('[%(asctime)s] :%(levelname)s: %(message)s', datefmt='%H:%M:%S')
-    handler.setFormatter(fmt)
-    log.addHandler(handler)
-    return log
-
-
-def end_logging(log):
-    handlers = log.handlers[:]
-    for hdlr in handlers:
-        hdlr.close()
-        log.removeHandler(hdlr)
-
 if __name__ == '__main__':
-    runtimer = Timer()
-    runtimer.start()
+
     es = Elasticsearch()
     change_model(DEFAULT_SIM, es)  # Resets the search model
     loop_no = 1
-    log = setup_logging()
-    for i in range(11):
-        SIM["similarity"]["default"]["k1"] = 1.45
-        for j in range(11):
+    increment = 0.05
+
+    for i in range(int(1/increment)):
+        SIM["similarity"]["default"]["k1"] = 1
+        for j in range(int(1/increment)):
             loop_vars = get_vars(SIM)
             print('Running loop no. {}...'.format(loop_no))
-            log.debug('Querying with vars k={0}, b={1}.\nElasticsearch settings:\n{2}'.format(loop_vars[0],  # line
-                                                                                              loop_vars[1],  # length
-                                                                                              pp.pformat(    # lol
-                                                                                                 es.indices.get_settings
-                                                                                                 (index='aquaint')
-                                                                                             )))
             file = 'data/bmo/results_b_{0:04.2f}_k_{1:04.2f}_.txt'.format(loop_vars[1], loop_vars[0])
             if exists(file):
                 print('Results for b={0:04.2f}, k={1:04.2f} already exist'.format(loop_vars[1], loop_vars[0]))
             else:
                 run_query(file, es)
-            SIM["similarity"]["default"]["k1"] += 0.01
+            SIM["similarity"]["default"]["k1"] += increment
             change_model(SIM, es)
             loop_no += 1
-        SIM["similarity"]["default"]["b"] += 0.01
+        SIM["similarity"]["default"]["b"] += increment
         change_model(SIM, es)
-    runtimer.lap()
-    print(runtimer.total_running_time_long)
+
     for i in os.listdir('data/BMO/'):
         with open('data/bmo/evaluations.txt', 'a') as f:
             cur_file = 'data/bmo/{}'.format(i)
@@ -110,7 +83,3 @@ if __name__ == '__main__':
             else:
                 print('Invalid file, skipping...')
     change_model(DEFAULT_SIM, es)  # Resets the search model
-
-    runtimer.lap()
-    print(runtimer.total_running_time_long)
-
