@@ -71,4 +71,4 @@ def full_eval(gt_file, output_file):
 
 if __name__ == '__main__':
     # full_eval(QRELS_FILE, RANKING_FILE)
-    full_eval(QRELS_FILE, 'data/bmo/results_b_0.80_k_1.50_.txt')
+    full_eval(QRELS_FILE, 'data/bmo/results_b_0.65_k_1.10_.txt')
