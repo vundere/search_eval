@@ -1,8 +1,9 @@
 .idea
 __pycache__
-olav/data/bm25_optimized.txt
-olav/data/mlm_default.txt
-olav/data/results.txt
-olav/data/bmo/
-olav/multiprocess/data
-olav/data
+olav/assign_1/data/bm25_optimized.txt
+olav/assign_1/data/mlm_default.txt
+olav/assign_1/data/results.txt
+olav/assign_1/data/bmo/
+olav/assign_1/multiprocess/data
+olav/assign_1/data
+olav/assign_1/data/bmo/evaluations.txt
