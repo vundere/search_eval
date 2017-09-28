@@ -95,8 +95,9 @@ class DT(object):
 
         :param records: Data records (given by indices)
         """
-        # TODO
-        return 0
+        count = Counter([self.data[x][IDX_TARGET] for x in records])
+        print(count)  # Print for checking
+        return sum([(-freq / len(records)) * math.log(freq / len(records), 2) for freq in count.values()])
 
     def __find_best_attr(self, attrs, records):
         """
