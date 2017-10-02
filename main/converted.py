@@ -1,6 +1,6 @@
 import csv
 import math
-from statistics import median, mode
+from statistics import median, mode, StatisticsError  # imports error for handling of mode exceptions
 from collections import Counter
 from enum import Enum
 
@@ -256,6 +256,25 @@ class DT(object):
             self.__add_node(parent_id, node_type=NodeType.leaf, edge_value=value, val=target)
             return
 
+        if len(records) < 100:
+            store = []  # stores classes
+
+            for r in records:
+                store.append(self.data[r][IDX_TARGET])
+
+            try:
+                cls = mode(store)
+            except StatisticsError as e:
+                cls = self.default_class
+
+            if cls == TARGET_ATTR_FAILURE:
+                target = TARGET_ATTR_FAILURE
+            if cls == TARGET_ATTR_SUCCESS:
+                target = TARGET_ATTR_SUCCESS
+
+            self.__add_node(parent_id, node_type=NodeType.leaf, edge_value=value, val=target)
+            return 
+
         # find the attribute with the largest gain
         splitting = self.__find_best_attr(attrs, records)
         # add node
@@ -279,17 +298,10 @@ class DT(object):
                 elif self.data[r][splitting.attr] <= split_cond:
                     lower.append(r)
 
-            try:
-                '>{}'.format(split_cond)
-                self.__id3(attrs_copy, upper, parent_id=node_id, value=False)
-            except Exception as e:
-                print('ERROR: {}'.format(e))
+            self.__id3(attrs_copy, upper, parent_id=node_id, value=False)
 
-            try:
-                '<={}'.format(split_cond)
-                self.__id3(attrs_copy, lower, parent_id=node_id, value=True)
-            except Exception as e:
-                print('ERROR: {}'.format(e))
+
+            self.__id3(attrs_copy, lower, parent_id=node_id, value=True)
 
         if splitting.split_type == SplitType.multi:
 
@@ -300,10 +312,8 @@ class DT(object):
                     if self.data[r][splitting.attr] == sc:
                         subset.append(r)
 
-                try:
-                    self.__id3(attrs_copy, subset, parent_id=node_id, value=sc)
-                except Exception as e:
-                    print('ERROR: {}'.format(e))
+                self.__id3(attrs_copy, subset, parent_id=node_id, value=sc)
+
 
 
     def print_model(self, node_id=0, level=0):
