@@ -24,9 +24,9 @@ Complete the table with the attribute name(s) chosen for the given requirements.
 
 | **Requirement** | **Chosen attribute(s)** |
 | -- | -- |
-| *For one of those 3 attributes, plot in a single figure 2 boxplots, one per each of the 2 classes.* | 'SHOT_DIST' |
-| *Choose 2 categorical attributes (different from the target) and plot each distribution in a histogram.* | 'SHOT_DIST', 'W' |
-| *Choose 2 numeric attributes and compare them in a scatter plot, with different colors for each class.* | 'SHOT_DIST', 'CLOSE_DEF_DIST' |
+| *For one of those 3 attributes, plot in a single figure 2 boxplots, one per each of the 2 classes.* | SHOT_DIST |
+| *Choose 2 categorical attributes (different from the target) and plot each distribution in a histogram.* | LOCATION, W |
+| *Choose 2 numeric attributes and compare them in a scatter plot, with different colors for each class.* | SHOT_DIST, CLOSE_DEF_DIST |
 
 
 ## Part B: Decision tree implementation
@@ -38,15 +38,15 @@ Write the name of the corresponding output file in the table, as well as the nam
 
 | **Output file** | **Code** | **Accuracy** |
 | -- | -- | -- |
-| `data/dt_basketball.pred.csv` | `Decision_tree_basketball.ipynb` | '0.57887' |
+| `data/dt_basketball.pred.csv` | `Decision_tree_basketball.ipynb` | 0.57887 |
 
 2 - Identify the top attribute that is used by your decision tree classifier.
 
-**Top attribute:** 'SHOT_DIST'
+**Top attribute:** SHOT_DIST
 
 3 - Only if your final code implements any of the mentioned enhancements, and you observed an improvement by using it, report in a few words what is the enhancement. (Otherwise leave it as it is.)
 
-**Possible enhancement:** 'Early stopping and checking for majority class when len(records) < 1600 resulted in a significant improvement.'
+**Possible enhancement:** Early stopping and checking for majority class when len(records) < 1600 resulted in a significant improvement.
 
 
 ## Part C: Advanced classifiers
