@@ -1,6 +1,7 @@
 import urllib
 import requests
 import json
+import numpy as np
 
 API = "http://gustav1.ux.uis.no:5002"
 QUERY_FILE = "data/queries.txt"
@@ -12,6 +13,21 @@ with open(QUERY_FILE, "r") as fin:
     for line in fin.readlines():
         qid, query = line.strip().split(" ", 1)
         queries[qid] = query
+
+
+# Kaggle's (N)DCG functions:
+def dcg_at_k(r, k):
+    r = np.asfarray(r)[:k]
+    if r.size:
+        return np.sum(np.subtract(np.power(2, r), 1) / np.log2(np.arange(2, r.size + 2)))
+    return 0.
+
+
+def ndcg_at_k(r, k):
+    idcg = dcg_at_k(sorted(r, reverse=True), k)
+    if not idcg:
+        return 0.
+    return dcg_at_k(r, k) / idcg
 
 
 def searchtitle():
@@ -54,6 +70,8 @@ def main():
 
     searchtitle()
     searchcontent()
+
+
 
 if __name__ == '__main__':
     main()
