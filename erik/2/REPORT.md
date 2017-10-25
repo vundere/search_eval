@@ -58,10 +58,10 @@ Write the name of the corresponding output file in the table, as well as the nam
 
 | **Output file** | **Code** | **Accuracy** |
 | -- | -- | -- |
-| `data/classifier_basketball.pred.csv` | `Alternative_classifiers.ipynb` | *TODO* |
+| `data/classifier_basketball.pred.csv` | `Alternative_classifiers.ipynb` | 0.58540 |
 
 
 2 - Report the classifier and its parameter(s) settings for the submitted predictions (add more line pairs of *Parameter* and *Parameter value* if needed):
-  - Classifier: *TODO*
-  - Parameter: *TODO*
-    - Parameter value = *TODO*
+  - Classifier: AdaBoost
+  - Parameter: learning_rate
+    - Parameter value = 0.20
