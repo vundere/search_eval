@@ -25,14 +25,13 @@ Complete the table with baseline retrieval results.
 
 | **Field** | **Output file** | **NDCG@10** | **NDCG@20** |
 | -- | -- | -- | -- |
-| Title | *TODO* | *TODO* | *TODO* |
-| Content | *TODO* | *TODO* | *TODO* |
-| Anchors | *TODO* | *TODO* | *TODO* |
+| Title | data/baseline_title.txt | 0.128 | 0.114 |
+| Content | data/baseline_content.txt | 0.138 | 0.128 |
+| Anchors | data/baseline_anchors.txt | 0.057 | 0.042 |
 
 
 List the names of Jupyter notebooks or other code files that were used for producing the results in the above table:
-  - *TODO*
-  - *TODO*
+  - 1_baseline.ipynb
 
 
 ## Learning-to-Rank
