@@ -48,7 +48,7 @@ Complete the table with learning-to-rank results.
 
 | **Features** | **Output file** | **NDCG@10** | **NDCG@20** |
 | -- | -- | -- | -- |
-| Only QD features | *TODO* | *TODO* | *TODO* |
+| Only QD features | data/ltr_qd.txt | 0.144 | 0.127 |
 | QD + Q features | *TODO* | *TODO* | *TODO* |
 | QD + D features | *TODO* | *TODO* | *TODO* |
 | ALL features (QD + Q + D) | *TODO* | *TODO* | *TODO* |
@@ -56,12 +56,12 @@ Complete the table with learning-to-rank results.
 
 List the features used with a brief explanation:
   - Query-document features [QD] (min. 6)
-    1. *TODO*
-    2. *TODO*
-    3. *TODO*
-    4. *TODO*
-    5. *TODO*
-    6. *TODO*
+    1. title & BM25
+    2. title & LM
+    3. content & BM25
+    4. content & LM
+    5. anchors & BM25
+    6. anchors & LM
   - Query features [Q] (min. 2)
     1. *TODO*
     2. *TODO*
