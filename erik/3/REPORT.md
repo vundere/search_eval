@@ -31,7 +31,7 @@ Complete the table with baseline retrieval results.
 
 
 List the names of Jupyter notebooks or other code files that were used for producing the results in the above table:
-  - 1_baseline.ipynb
+  - Baseline.ipynb
 
 
 ## Learning-to-Rank
@@ -48,7 +48,7 @@ Complete the table with learning-to-rank results.
 
 | **Features** | **Output file** | **NDCG@10** | **NDCG@20** |
 | -- | -- | -- | -- |
-| Only QD features | data/ltr_qd.txt | 0.144 | 0.127 |
+| Only QD features | data/ltr_qd.txt | 0.141 | 0.135 |
 | QD + Q features | *TODO* | *TODO* | *TODO* |
 | QD + D features | *TODO* | *TODO* | *TODO* |
 | ALL features (QD + Q + D) | *TODO* | *TODO* | *TODO* |
