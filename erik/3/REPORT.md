@@ -48,10 +48,10 @@ Complete the table with learning-to-rank results.
 
 | **Features** | **Output file** | **NDCG@10** | **NDCG@20** |
 | -- | -- | -- | -- |
-| Only QD features | data/ltr_qd.txt | 0.141 | 0.135 |
-| QD + Q features | *TODO* | *TODO* | *TODO* |
-| QD + D features | *TODO* | *TODO* | *TODO* |
-| ALL features (QD + Q + D) | *TODO* | *TODO* | *TODO* |
+| Only QD features | data/ltr_qd.txt | 0.137 | 0.135 |
+| QD + Q features | data/ltr_qd_q.txt | 0.142 | 0.125 |
+| QD + D features | data/ltr_qd_d.txt | 0.155 | 0.148 |
+| ALL features (QD + Q + D) | data/ltr_qd_q_d.txt | 0.144 | 0.140 |
 
 
 List the features used with a brief explanation:
@@ -63,12 +63,14 @@ List the features used with a brief explanation:
     5. anchors & BM25
     6. anchors & LM
   - Query features [Q] (min. 2)
-    1. *TODO*
-    2. *TODO*
+    1. query length (words)
+    2. average BM25 score for query results
   - Document features [D] (min. 2)
-    1. *TODO*
-    2. *TODO*
+    1. document length, title field
+    2. document length, content field
 
 List the names of Jupyter notebooks or other code files that were used for producing the results in the above table:
-  - *TODO*
-  - *TODO*
+  - LTR_QD.ipynb
+  - LTR_QD_Q.ipynb
+  - LTR_QD_D.ipynb
+  - LTR_QD_Q_D.ipynb
