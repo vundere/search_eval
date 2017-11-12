@@ -27,7 +27,7 @@ Complete the table with baseline retrieval results.
 | -- | -- | -- | -- |
 | Title | data/baseline_title.txt | 0.128 | 0.114 |
 | Content | data/baseline_content.txt | 0.138 | 0.128 |
-| Anchors | data/baseline_anchors.txt | 0.057 | 0.042 |
+| Anchors | data/baseline_anchors.txt | 0.090 | 0.083 |
 
 
 List the names of Jupyter notebooks or other code files that were used for producing the results in the above table:
@@ -48,10 +48,10 @@ Complete the table with learning-to-rank results.
 
 | **Features** | **Output file** | **NDCG@10** | **NDCG@20** |
 | -- | -- | -- | -- |
-| Only QD features | data/ltr_qd.txt | 0.137 | 0.135 |
-| QD + Q features | data/ltr_qd_q.txt | 0.142 | 0.125 |
-| QD + D features | data/ltr_qd_d.txt | 0.155 | 0.148 |
-| ALL features (QD + Q + D) | data/ltr_qd_q_d.txt | 0.144 | 0.140 |
+| Only QD features | data/ltr_qd.txt | 0.176 | 0.165 |
+| QD + Q features | data/ltr_qd_q.txt | 0.175 | 0.162 |
+| QD + D features | data/ltr_qd_d.txt | 0.177 | 0.172 |
+| ALL features (QD + Q + D) | data/ltr_qd_q_d.txt | 0.151 | 0.147 |
 
 
 List the features used with a brief explanation:
@@ -61,7 +61,7 @@ List the features used with a brief explanation:
     3. content & BM25
     4. content & LM
     5. anchors & BM25
-    6. anchors & LM
+    6. anchors & LM 
   - Query features [Q] (min. 2)
     1. query length (words)
     2. average BM25 score for query results
@@ -70,6 +70,7 @@ List the features used with a brief explanation:
     2. document length, content field
 
 List the names of Jupyter notebooks or other code files that were used for producing the results in the above table:
+  - LTR_kaggle.ipynb
   - LTR_QD.ipynb
   - LTR_QD_Q.ipynb
   - LTR_QD_D.ipynb
